@@ -1,4 +1,5 @@
 # Attacks on Anonymity Systems: The Theory
+![Illustration](https://raw.githubusercontent.com/Dicklesworthstone/sassaman_and_dingledine_on_remailers_at_blackhat_2003/main/remailers_illustration.webp)
 ## By Len Sassaman and Roger Dingledine
 ## *Presented at the Blackhat Conference in 2003*
 
