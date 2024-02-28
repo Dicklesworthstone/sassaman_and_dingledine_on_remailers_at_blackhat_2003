@@ -2,9 +2,11 @@
 ## By Len Sassaman and Roger Dingledine
 ## *Presented at the Blackhat Conference in 2003*
 
-We're focusing for both the talks on high latency systems like Mixmaster, things for email, remailers. There are some low latency systems for web browsing or something, but we're going to not focus on those quite as much. Okay, so for this one, before lunch, we've got some stuff about adversaries and threat models. We're going to give you a walkthrough of the mixed minion design process. I'll tell you what that is in a bit.
+### Introduction
 
-We've got some alternate designs besides mixed minions so you can get a feel for the flavor of possibilities. And then we've got some controversial issues and some economics to look at. So here's the motivation slide. I think at a conference like this most people have a pretty good sense of the motivation. The obvious one is individuals.
+We're focusing for both the talks on high latency systems like Mixmaster, things for email, remailers. There are some low latency systems for web browsing or something, but we're going to not focus on those quite as much. Okay, so for this one, before lunch, we've got some stuff about adversaries and threat models. We're going to give you a walkthrough of the Mixminion design process. I'll tell you what that is in a bit.
+
+We've got some alternate designs besides Mixminions so you can get a feel for the flavor of possibilities. And then we've got some controversial issues and some economics to look at. So here's the motivation slide. I think at a conference like this most people have a pretty good sense of the motivation. The obvious one is individuals.
 
 People need their privacy. DoubleClick is tracking you every day. They're going to have such a huge dossier on you in 20 years. They're going to know all of your interests. You try to get insurance from somebody and they say, do you like car racing?
 
@@ -22,19 +24,23 @@ But the idea is you can't simply use an anonymity system for one entity. If the 
 
 You must carry traffic for other people. And the trick there is other people won't want to use it if only you run the infrastructure. Some guy in Slovenia is not going to be using a remailer that is run entirely by the Navy. He'll set up something that he trusts, the Navy will set up something they trust, and so on and so forth. And that's how you get the distributive trust.
 
+### Adversaries and Threat Models
+
 Okay, so there are a bunch of different characteristics we might look at for an adversary. We'll talk more about these concepts in part two, but I'll briefly go over them now. Basically you can pick and choose from this list to create whatever adversary you might be looking at. You might be looking at an adversary who can participate in the system, or maybe he can just look at the wires between nodes. Maybe he just watches and logs like Carnivore, or maybe he owns some hackers and he breaks into things.
 
 Maybe he only has jurisdiction over a couple of the nodes, or can only break into the IRIX boxes or something like that. Or maybe he's global, maybe he can look at the entire internet. Or you can look at static versus adaptive. Maybe he deploys his Carnivores and he's done. Or maybe he has a bunch of Carnivores in the back and as soon as he knows where he wants them he puts a new one out, and that way he can follow you wherever you're going.
 
 Okay, so some sample adversaries. We've got the global passive adversary, that's the one the research people focus on a lot. Somebody who watches the entire internet, but doesn't really do very much. They've hired some smart traffic analysis people and they sit in the back and they learn everything just by watching the traffic. Or you could have some guy who signs up a node in the Remailer network and says, aha, I'm going to watch the traffic through my node, I'm going to learn things.
 
-I'm going to learn maybe who sends, who receives. Maybe I can't correlate them that easily, but maybe I can. Or you've got an external attacker, somebody who sits around and floods one of the nodes to influence the anonymity or the service provided by the network. Okay, so the Mixed Minion Threat Model. Mixed Minion is a Remailer that we've designed recently to improve over all the issues that showed up in previous designs.
+I'm going to learn maybe who sends, who receives. Maybe I can't correlate them that easily, but maybe I can. Or you've got an external attacker, somebody who sits around and floods one of the nodes to influence the anonymity or the service provided by the network. Okay, so the Mixminion Threat Model. Mixminion is a Remailer that we've designed recently to improve over all the issues that showed up in previous designs.
 
-The Mixed Minion Threat Model is all three. We want to handle a global passive adversary who can observe everything on the internet. We want to handle somebody who can sign up some of the nodes, hopefully not more than half of them, and somebody who can inject, modify, delete some of the traffic. Not all the traffic because then we'd be in really bad shape, but he can flood messages, he can delete certain things, he can delay things, stuff like that. We're not real-time, we're not packet-based, we're not steganographic, those are all the first questions people ask.
+The Mixminion Threat Model is all three. We want to handle a global passive adversary who can observe everything on the internet. We want to handle somebody who can sign up some of the nodes, hopefully not more than half of them, and somebody who can inject, modify, delete some of the traffic. Not all the traffic, because then we'd be in really bad shape, but he can flood messages, he can delete certain things, he can delay things, stuff like that.
 
-We're not trying to do this for web browsing or something, it's just for email at this point. We won't actually succeed against an adversary that's this hard, but we'll come kind of close and you'll see which attacks still work towards the end. I mean, this is a pretty hard adversary. Most designs aim for something weaker than this because, I mean, this is large, smart governments. Okay, so basic idea.
+We're not real-time, we're not packet-based, we're not steganographic, those are all the first questions people ask. We're not trying to do this for web browsing or something, it's just for email at this point. We won't actually succeed against an adversary that's this hard, but we'll come kind of close and you'll see which attacks still work towards the end. I mean, this is a pretty hard adversary. Most designs aim for something weaker than this because, I mean, this is large, smart governments. 
 
-Alice wants to send a message to Bob and she wants Bob to not know where it came from. So the first thing you can do is set up a direct forwarder. Basically node number one gets the message from Alice. It says, hey, give this to Bob, and node number one gives it to Bob. So in the simple naive case, if Bob can only look around him, he doesn't know that it came from Alice because number one strips it off.
+## Remailer Goals and Design
+
+Okay, so basic idea: Alice wants to send a message to Bob and she wants Bob to not know where it came from. So the first thing you can do is set up a direct forwarder. Basically node number one gets the message from Alice. It says, "Hey, give this to Bob," and node number one gives it to Bob. So in the simple naive case, if Bob can only look around him, he doesn't know that it came from Alice because number one strips it off.
 
 On the other hand, if you're observing Alice at the time, then you know, you watch the message come out of her and it says, this is my message, M, please send it to Bob. And you know that Alice is sending it to Bob. So the next step is we add in some encryption. Alice now encrypts her channel to node one and basically that means that somebody watching that channel cannot learn it. On the other hand, you might just own node one already or you might break into node one or subpoena it or all sorts of attacks.
 
@@ -49,6 +55,8 @@ That's correct. In this particular case, you see message M going to Bob, that's 
 If Alice signs her name on the document, it sucks to be Alice. You got to keep that in mind. We're only providing anonymity of the routing information. We're not providing the data. The other parts are a solved problem.
 
 Use those solutions in conjunction with this. There's no reason to tackle that over again. Yeah? So don't try to enable a scenario where Bob can respond to Alice without going to Alice? That comes next.
+
+### Directory Servers and Reply Blocks
 
 Okay, well, almost next. So we've got directory servers here because Alice doesn't know which nodes she can choose. So the idea is you've got servers that keep track of all the nodes. When you join the network, you say, hey, Mr. Directory server, please sign me up and let people know about me. And the directory servers can also send test messages through the new nodes.
 
@@ -66,21 +74,21 @@ And he also says, and by the way, send it to node number one. And then Alice get
 
 And then the first node decrypts it and then finds that it's supposed to go to node two. And here's the new blob to send. And it goes down the line until, at the very end, the message is going to Bob. And if Alice knows a public key for Bob, she could encrypt it. Or if she doesn't, then that's okay too.
 
-On the other hand, it's hard for Bob to get this reply block from, it's hard to get a reply block to Alice. Because how would you know who Bob is? So we add in a NIMS server. Basically, it's a machine out there where if you want to receive mail anonymously, then you go to that place and you say, here's my pseudonym. Here's a reply block that will work for it.
+On the other hand, it's hard for Bob to get this reply block from, it's hard to get a reply block to Alice. Because how would you know who Bob is? So we add in a Nymserver. Basically, it's a machine out there where if you want to receive mail anonymously, then you go to that place and you say, here's my pseudonym. Here's a reply block that will work for it.
 
-And now when somebody wants to send mail to you, they go to the NIMS server and say, here's my message. Send it to that pseudonym. And they don't know where the pseudonym goes. They don't know which email address it is or which country the person lives in or whatever. But the mail gets to them.
+And now when somebody wants to send mail to you, they go to the Nymserver and say, here's my message. Send it to that pseudonym. And they don't know where the pseudonym goes. They don't know which email address it is or which country the person lives in or whatever. But the mail gets to them.
 
-And we can... Yes? Yes. Yes. At this point, the reply block that the NIMS server has is the same. The only reason why the owner of the reply block would want to change it is if one of the nodes in that path dies.
+And we can... Yes? Yes. Yes. At this point, the reply block that the Nymserver has is the same. The only reason why the owner of the reply block would want to change it is if one of the nodes in that path dies.
 
 And then you say, oh shucks, I'm not getting any mail. I guess I'll go give it a new reply block. And there are some authentication techniques so other people can give you a reply block. But that's the basic idea. And yes, there's a problem with that.
 
-So we'll fix that in a bit. Okay. So we can combine these two ideas. Bob can choose a path to the NIMS server and encrypt the message that way. And then the NIMS server uses Alice's reply block to encrypt it to Alice.
+So we'll fix that in a bit. Okay. So we can combine these two ideas. Bob can choose a path to the Nymserver and encrypt the message that way. And then the Nymserver uses Alice's reply block to encrypt it to Alice.
 
-So now somebody watching the NIMS server sees a message come in out of the ether and a message go off to some reply block. And they can perhaps correlate that it's the pseudonym that it's going to. But they have no idea who the sender was. And they don't know the location of the recipient. And if you stop here, you get Type I or Cypherpunk remailers, which were done in, what, 92?
+So now somebody watching the Nymserver sees a message come in out of the ether and a message go off to some reply block. And they can perhaps correlate that it's the pseudonym that it's going to. But they have no idea who the sender was. And they don't know the location of the recipient. And if you stop here, you get Type I or Cypherpunk remailers, which were done in, what, '92? '92, originally. '91, '92. Something like that. Okay.
 
-92, originally. 91, 92. Something like that. Okay. Well, there's one problem here, which is as a message travels through each node, if you're able to watch the network, you can just watch a message go in, go out, go in, go out.
+## Monitoring and Attacks
 
-And you don't need to know what is actually in that message because even though you can't see the message and can't tell the two messages are the same, you know basically that they're the same message because you've just watched it hop back and forth through the network. So what we want to do is make it so somebody watching the network, the global adversary, can't determine that a certain input is the same as a certain output. So we end up bringing messages in and reordering them so that they go out in a different order than they came in. Combine that with multiple nodes and you have a pretty difficult time tracking which message is which based on order if you have enough people in the, users in the network. There's still a problem with the Cypherpunk system, which is each message is just PGP encrypted in the Type I system and each message then is its own size.
+Well, there's one problem here, which is as a message travels through each node, if you're able to watch the network, you can just watch a message go in, go out, go in, go out. And you don't need to know what is actually in that message because even though you can't see the message and can't tell the two messages are the same, you know basically that they're the same message because you've just watched it hop back and forth through the network. So what we want to do is make it so somebody watching the network, the global adversary, can't determine that a certain input is the same as a certain output. So we end up bringing messages in and reordering them so that they go out in a different order than they came in. Combine that with multiple nodes and you have a pretty difficult time tracking which message is which based on order if you have enough people in the, users in the network. There's still a problem with the Cypherpunk system, which is each message is just PGP encrypted in the Type I system and each message then is its own size.
 
 There is not a uniform size for each message. So you could still watch messages and have a pretty good idea which one is which based on their sizes, which are roughly the same for each hop. So to fix that, we pad each message to a fixed size or if it's too large, split it and pad the fragments if need be. So you have random junk added at the bottom of the header and you just rotate, you pull off the top header as it comes through a node, put more filler down at the bottom and then the message looks the same size through every hop and all messages look the same. However there's a bigger problem, particularly with the NIM reply blocks as was brought up earlier, which is replays.
 
@@ -88,7 +96,11 @@ If you were to take a message and grab it out of the network, you're seeing that
 
 I'm going to watch it. I'm going to see that it comes out. If she's posting to a public forum, it's even easier. You don't need to be a global adversary. You just need to be able to grab a hold of her message and then watch as it pops up on the public forum multiple times.
 
-So the solution to that or the beginning of a solution to that is a replay cache. When a message comes in, take a hash of it, store that, and then the next time that same message comes in, check it against the hash table and if it's in there, just drop the message. It's already gone through. There's a resource problem with that, which is nobody has indefinite disk space and eventually your table will fill up. It's also an inviting attack there for somebody who wants to cause denial of service trouble, which is just start flooding your remailer with individual messages and let the hash table grow.
+So the solution to that or the beginning of a solution to that is a replay cache. When a message comes in, take a hash of it, store that, and then the next time that same message comes in, check it against the hash table and if it's in there, just drop the message. It's already gone through. 
+
+### Resource and Blending Attacks
+
+There's a resource problem with that, which is nobody has indefinite disk space and eventually your table will fill up. It's also an inviting attack there for somebody who wants to cause denial of service trouble, which is just start flooding your remailer with individual messages and let the hash table grow.
 
 So a solution to that, then, is add expiration dates on each message so that if a message hits a node a certain amount of time after it was created, say, seven days, that message is assumed to be a replay and dropped. Well, that leaks some information about the message because you're now time stamping when it was created. So implementations of this generally do not put an accurate time stamp. They just fuzz it by about three days so that there's a more difficult probability that somebody will be able to tell which message came from which sender based on time. There are still possibly statistical attacks against that, though.
 
@@ -96,9 +108,11 @@ And then there's the class of attacks known as blending attacks. You can flood a
 
 You have no crowd. Well, we solve this by creating a message pool. Messages come in, and they don't just get mixed up with the messages that are coming in at that time and sent out. They come in, and they're stored, and an individual amount of messages at given intervals is then allowed to leave. This makes it much harder to do a blending attack because not all messages are leaving at once.
 
-You need to control the traffic for a long time, and probably you need to somehow prevent other legitimate senders from actually sending to that node. Which is the next attack. Make sure that during the entire pooling cycle, only your messages get in with the exception of the one message you're looking at, and you're back to the same attack working just a little bit more set-up time. If you're the only one who can send to the entire network, if somehow you've stopped all senders from being able to get there, which is possible through a number of different attacks perhaps on the reputation servers, then you win again. So we have this concept of dummy messages now.
+You need to control the traffic for a long time, and probably you need to somehow prevent other legitimate senders from actually sending to that node. Which is the next attack. Make sure that during the entire pooling cycle, only your messages get in with the exception of the one message you're looking at, and you're back to the same attack working just a little bit more set-up time. If you're the only one who can send to the entire network, if somehow you've stopped all senders from being able to get there, which is possible through a number of different attacks perhaps on the reputation servers, then you win again. 
 
-There's really two classes of dummy messages. There's internal dummy messages, and then there's user dummy messages. The internal dummy messages are easier, so we'll talk about them first. In order to confuse somebody watching the network, you want to add noise to the system. So if the individual nodes are generating dummy traffic, they make it harder for somebody attempting the blending or trickle attacks to know that coming out of that node are the messages they're looking at.
+### Dummy Messages
+
+So we have this concept of dummy messages now. There's really two classes of dummy messages. There's internal dummy messages, and then there's user dummy messages. The internal dummy messages are easier, so we'll talk about them first. In order to confuse somebody watching the network, you want to add noise to the system. So if the individual nodes are generating dummy traffic, they make it harder for somebody attempting the blending or trickle attacks to know that coming out of that node are the messages they're looking at.
 
 If each node is generating internal dummy messages and pushing out each flush, then you will see your messages that you're trying to discount, and then a bunch of unknown messages. One of which is the message you're looking at, but others are dummies. Is there a public key compromised because of dummy messages? No. These are just like regular messages, only they have random data in them.
 
@@ -106,13 +120,17 @@ Actually, in Mixmaster, it's random data. So the idea is that... So the trick is
 
 But you can send dummy messages between nodes in the system, and they will always just look like encrypted stuff until they get to the node that says, I am the end of the dummy message, and by the way, I was a dummy message, and then that node drops it. So there's no worry about losing public-private keys for nodes through dummies. However, this does only cover internal traffic. It gets to the last node, I'm a dummy, I'm dropped, it doesn't do anything for the users. If you want dummy traffic with users, the users need to be sending the dummy messages, and they actually need to be going somewhere.
 
-If we have dummies that are being sent by the users and not delivered anywhere, somebody watching this may be able to figure out a percentage of that person's messages being dummies and so forth. Really the best dummy messages for a user are other users' legitimate traffic. So if you stop there, basically you get the current mix master design. The improvement on cyberpunk remailers that's been running on the internet since 95. We will get to that later in the talk.
+If we have dummies that are being sent by the users and not delivered anywhere, somebody watching this may be able to figure out a percentage of that person's messages being dummies and so forth. Really the best dummy messages for a user are other users' legitimate traffic. So if you stop there, basically you get the current Mixmaster design, the improvement on cyberpunk remailers that's been running on the internet since '95. We will get to that later in the talk.
 
-The first answer to that is you want the users to anonymize their communications to the NIMS server, but they still have a public-private key pair which is associated only with that NIMS, and then they can authenticate their communications, but they can still be anonymous. Are you asking about the NIMS server or the stats servers with the keys? NIMS server, right. In order to communicate with the NIMS server, you do have to go through... You want to be anonymous talking to the NIMS server, so you want to create messages that... All your control messages should be email messages. That's how a good NIMS server is designed, and you send them all through a chain of remailers just as though it's a one-way anonymous message.
+The first answer to that is you want the users to anonymize their communications to the Nymserver, but they still have a public-private key pair which is associated only with that NIMS, and then they can authenticate their communications, but they can still be anonymous. Are you asking about the Nymserver or the stats servers with the keys? Nymserver, right. In order to communicate with the Nymserver, you do have to go through... You want to be anonymous talking to the Nymserver, so you want to create messages that... All your control messages should be email messages. That's how a good Nymserver is designed, and you send them all through a chain of remailers just as though it's a one-way anonymous message.
+
+### Spam and Abuse
 
 I have given full 90-minute talks on abuses, so I don't want to go too deeply into that. The short answer is spam is not really an issue with high-latency remailer systems except with Usenet spam, because as I will get into in the second part of this talk, it does not make economic sense for a spammer to use a remailer system when there's so many better ways of sending spam. If you're using a... I'm getting ahead of myself here, but in order to be anonymous, you have to behave like everybody else. Not everybody sends billions of messages. So if you're sending millions of messages, you're pretty much caught.
 
 Also, those messages do get delayed over time, because as far as the system is concerned, a spam attack is not really any different than a flooding attack and so forth. It can't tell, so with pooling, those messages will then be trickled out to your recipients. The point here is spammers don't do this, because it doesn't make sense for them. We should save this discussion of what actually happens for Part 2. Yeah, that really is a Part 2 issue.
+
+### Improvements to Mixmaster
 
 The goal of Part 1 is to give everybody a crash course in what ought to happen so that we can compare that to what does happen. Okay, so now that we've gone through Mixmaster, let's go through a couple of improvements that needed to happen on Mixmaster. One of them is the passive subpoena attack, and I talk about it as subpoena, but it could also be the passive go beat somebody up attack. It doesn't have to just be a jurisdiction issue. The idea is Eve records messages, and then later on, she shows up and says, hey, decrypt this thing for me.
 
@@ -125,6 +143,8 @@ Okay, so if you've resolved that, once we've got link encryption with good key r
 So we need to deal with multiple public keys so you've got an identity key and stuff like that. But it's pretty straightforward. The basic idea is key rotation is good, otherwise all these attacks where you remember a message and then show up later start working. Yes? I'm proposing that every mix should rotate its keys.
 
 Every node. Yes, every node. Yeah, the users, that's up to them. That also has a side benefit of each time you rotate a key, you can get rid of your replay cache because those messages won't be decryptable anymore, it doesn't matter. Yep.
+
+### Esoteric Attacks
 
 Okay, so now we've got a couple slightly more esoteric attacks, but still important to pay attention to. If the clients know different things, so we've got these directory servers and some guy goes to a directory server and learns that directory server's opinion of what the network looks like. And then some other guy goes to a different one and learns that directory server's opinion of what the network looks like. And the opinions are very different. And then the two users send messages.
 
@@ -152,6 +172,8 @@ And then you can recognize it later on, because not as many messages on the netw
 
 So our fix for this is, get rid of this expiration date stuff. If you rotate your key every month, then you keep a replay cache for that month. It doesn't grow more than a couple gigabytes if you're being flooded for the whole month. And that's good enough for us for now. Okay.
 
+### Trickier Attacks: Tagging
+
 So now there are some trickier attacks that work against pretty much all deployed remailer systems. One of them is a tagging attack. So the idea is, in Mixmaster headers, so you've got a header that describes each hop you're going to go through. So maybe if you've got a path of length four, then you've got four headers in the message. And the trick here is that Mixmaster headers have a hash to verify the integrity of all the fields inside that particular header.
 
 Not the entire path, but just that one. So when it gets to your node, you decrypt it. You look at your header that says, this is where it goes next. This is the message. Stuff like that.
@@ -176,6 +198,8 @@ And it's important to notice that Mixmaster doesn't do replies. Mixmaster just u
 
 Since for forward messages, the user encrypts a whole lot of times, and then it decrypts as it goes. And for reply messages, you want to encrypt at each hop. Because it's the recipient who knows all the keys to decrypt it. So you want to use a crypto system where encrypting is as strong as decrypting. There are plenty of those.
 
+### Reply Blocks in Mixmaster
+
 So that, that's pretty straightforward. Okay, now there's a big problem here. I can't write a reply block. I can't write the headers that you will attach your message to, and have the hash in those headers correspond to your message at each hop. Because I don't know what payload you're going to attach to my reply block.
 
 Does that make sense to everybody? Excellent. Okay, so the idea is the author of the reply block can't guess the right hashes for what somebody's going to attach. And that means that the payload tagging attack is back. Because we can't have the hash cover the payload.
@@ -190,7 +214,9 @@ Because you see one come in over here, and then you see another reply over there
 
 And so what we want to do is find some way for these messages to look the same, even to the nodes. And this is a novel thing compared to any of the previous designs. A number of the previous designs had them indistinguishable as far as the link was concerned. Because you've got link encryption, so you're all set. But I worry that node one will see it, and node four will see it, and then they'll be able to correlate.
 
-OK, so I'm going to switch out of attack-defense, attack-defense mode for a little bit to describe the Mixed Minion design and give you a feel for how these things can be designed. And then we'll go back into attack-defense after that. So the basic idea for Mixed Minion is we've got three different ways of sending messages. Alice can send a message forward to Bob. Alice is the one getting anonymity.
+### Mixminion Design
+
+OK, so I'm going to switch out of attack-defense, attack-defense mode for a little bit to describe the Mixminion design and give you a feel for how these things can be designed. And then we'll go back into attack-defense after that. So the basic idea for Mixminion is we've got three different ways of sending messages. Alice can send a message forward to Bob. Alice is the one getting anonymity.
 
 Bob can reply. Bob is the one. Alice can send a reply to Bob, where Bob is anonymous, and that's the basic idea. And we've got also the combination, anonymized replies, where Alice sends a message through the path that she chose, and then it goes through the path that Bob chose, and they both don't know who each other is. And maybe there are pseudonyms that they can layer on top of it so they can have an idea of whether it's the same Bob or something.
 
@@ -216,6 +242,8 @@ The adversary can't ever know that he tagged it, because Alice plunks in the rep
 
 And there's some optimizations on that, but that's the basic approach. And anonymized replies are safe for the combination of these arguments. If you have Alice's leg and Bob's leg, then if the first leg is tagged, then the second leg is unrecoverable, who knows what it is. You know that Alice sent, but you don't know who Alice sent to, or whether it was a reply block or what. And if the second leg is tagged, but the first one isn't, then who cares, because only Bob notices that it's tagged.
 
+### Subtle Problems with the Design
+
 Sound good? Okay, so I've sort of convinced you that maybe it's secure, except it's not. Once we worked on this design for a while, we realized that there's another attack that's subtle, but pretty damaging. And the moral there is, gosh, it's hard to design anonymity systems. So the issue is, what happens if Alice sends more than one message?
 
 Imagine if Alice sends a bunch of messages, and she chooses the same path. She sends maybe 15 messages along the same path to the same crossover point, to the same, and so on. Now the hope before was, if it's tagged, then you can't learn the second leg. But in this case, she sends 15 messages, the adversary tags four of them, the adversary owns the crossover point, 15 messages arrive, four of which are tagged, and the others of which have a nice shiny second leg just sitting there. So now you can tag the second leg, and you win.
@@ -238,17 +266,19 @@ Yes. That's why you use... Yep. The attack there is, if Alice chooses only one p
 
 So that argues that Alice should not use the same path all the time. She should probably pick new ones every so often. And unfortunately, I can't give you numbers about what every so often means. That's still a research question. But it's a function of what you think your adversary will be, which is kind of hard to guess in the first place.
 
-OK. We get into the question of who your adversary is and what his methods are in part two. Well, with this system we have single-use reply blocks, and that's pretty inconvenient for Alice and Bob talking to each other, because Bob wants to talk to Alice, he's got to get a new reply block every single time. How do you do that? Come back to the NIMS server approach, where the NIMS server stores messages.
+OK. We get into the question of who your adversary is and what his methods are in part two. Well, with this system we have single-use reply blocks, and that's pretty inconvenient for Alice and Bob talking to each other, because Bob wants to talk to Alice, he's got to get a new reply block every single time. How do you do that? Come back to the Nymserver approach, where the Nymserver stores messages.
 
-And the initial thought we had was, well, we'll just fill it up with a cache of single-use reply blocks, and it'll tick them off there, and you refill it eventually. That has a number of different attacks on it, particularly denial-of-service attacks. So the system that Mixed Minion is proposing is a sort of IMAP over Mixed Minion approach, where messages come in and they're stored in the NIMS server, and the recipient will send in reply blocks to retrieve messages and also retrieve control information about those messages. First message would perhaps come through, and the response would be, you had this many messages waiting of these sizes. Do you want them?
+And the initial thought we had was, well, we'll just fill it up with a cache of single-use reply blocks, and it'll tick them off there, and you refill it eventually. That has a number of different attacks on it, particularly denial-of-service attacks. So the system that Mixminion is proposing is a sort of IMAP over Mixminion approach, where messages come in and they're stored in the Nymserver, and the recipient will send in reply blocks to retrieve messages and also retrieve control information about those messages. First message would perhaps come through, and the response would be, you had this many messages waiting of these sizes. Do you want them?
 
-You need to send this many reply blocks to me. If you don't want them, send a delete, and so forth. And that works sort of well. There's a problem of now all that mail is stored on the NIMS server, and the NIMS server needs to have greater resources allocated to it, but it's a better approach than simply storing caches of reply blocks or not using a NIMS server. So ending right there is the current Mixed Minion design.
+You need to send this many reply blocks to me. If you don't want them, send a delete, and so forth. And that works sort of well. There's a problem of now all that mail is stored on the Nymserver, and the Nymserver needs to have greater resources allocated to it, but it's a better approach than simply storing caches of reply blocks or not using a Nymserver. So ending right there is the current Mixminion design.
 
-And there's still plenty more to deal with after that. We have a couple of open problems described here, and there are lots more. I think we might have put the paper on the CD. If not, you can Google for Mixed Minion and you'll find it. So one of the open problems, reputation on the directory servers.
+And there's still plenty more to deal with after that. We have a couple of open problems described here, and there are lots more. I think we might have put the paper on the CD. If not, you can Google for Mixminion and you'll find it. So one of the open problems, reputation on the directory servers.
 
 So what we'd like to do is let the directory servers give you an ordered list of who's reliable, because reliability is a big issue. If you use somebody who's been down for three months, then they're probably not going to be up when your message gets to them. So you need to know who's likely to be there when the message arrives. On the other hand, every directory server has to agree on how you should measure reliability, and they also have to be able to measure the reliability without having somebody change that on them. If your test message scenario allows the adversary to say, that's a test message, that's a message from the user, I'll send that one, I'll drop that one, then the directory server says, it's a wonderful remailer, it's great, it's always reliable, but none of the user's messages get through.
 
 So you have to deal with that issue. Or alternatively, you can, maybe the adversary can make the network look a certain way at some point, and then look a different way later, and some clients will update or not, or something like that. There are a bunch of attacks here that we haven't really sorted out, and we need to figure out what they are and how much we care. Key rotation also, again, becomes an issue. There's a vulnerable point where you're retaining your key, and there may be messages still in the mix that apply to the old key, and the directory server, what do you do, and also, how do you keep the directory servers in line, because that's a window of opportunity for a malicious directory server to play funny games with the network there.
+
+### Reputation Based Attacks
 
 The other attack that we're worried about, if our adversary is as strong as the threat model I described at the beginning, they probably have a lot of money, they can probably run a lot of nodes, they can probably run a lot of really reliable nodes. So if we have a reputation system, then we have a way for the adversary's nodes to shoot right to the top and look really, really attractive. Not only that, but now that we've got a reputation system, the adversary has an incentive to put his nodes at the top and DOS all the rest of them. Any other allegedly reliable node, gosh, it keeps going down, I can't understand it. You better use these, they're reliable.
 
@@ -264,7 +294,9 @@ So that's kind of a big open problem. What we're working on right now from the r
 
 But we're hoping to at least get some idea of how strong the adversary has to be and how many days or whatever he has to be watching traffic before he can learn. And the other fix is that Alice should never ever do the same thing twice. If Alice only sends one message, she's doing pretty well. On the other hand, that's not a very useful network if you can only ever send one message and then afterwards you can be traced. So this is a major unsolved problem in lots of anonymous systems.
 
-So we're going to change course a little bit and talk about various designs that are different from mixed minions so you can get a sense of what they're about. Right. We will reference these a bit in part two. So just as an overview, we're back to single-hop proxies. We talked about them briefly in the beginning.
+### Different Approaches
+
+So we're going to change course a little bit and talk about various designs that are different from Mixminions so you can get a sense of what they're about. Right. We will reference these a bit in part two. So just as an overview, we're back to single-hop proxies. We talked about them briefly in the beginning.
 
 It's just a node which will forward messages through and hide source information. They're seen a lot with web browsing, Anonymizer, the defunct SafeWeb attempted that. They are... Len and I argued about putting SafeWeb on that because he said, don't you dare put Anonymizer and SafeWeb in the same category because SafeWeb has all these attacks and Anonymizer doesn't. And I said, well, this is the theory side. Yes.
 
@@ -298,11 +330,11 @@ We're hoping to have volunteers run onion routers rather than pay them, like in 
 
 The trick there is that if the adversary sits at the beginning and sits at the end of the path, then he can use timing attacks and packet counting attacks to notice which one's which. In the case of email, it's okay if it takes five hours to deliver, and that five hours lets it mix a lot. In the case of a webpage, five hours is not good. So we want people to actually use the system, and that means that it has to be fast, and that means if you're watching both endpoints, then you win. So onion routing is trying to deal with a different threat model here.
 
-And users should maybe run a node or anonymize their connection to the first node for better privacy. Okay, so we've got a little bit of time to run through some controversial design issues. One of them is cascades versus free routes. If you talk to Andreas Fitzman, the professor in Germany who knows everything about anonymity, he explains it very clearly. If you use a free route, it's very complex.
+And users should maybe run a node or anonymize their connection to the first node for better privacy. Okay, so we've got a little bit of time to run through some controversial design issues. One of them is cascades versus free routes. If you talk to Andreas Pfitzman, the professor in Germany who knows everything about anonymity, he explains it very clearly. If you use a free route, it's very complex.
 
 Who knows? If you use a cascade, you have provable anonymity. Which should you pick? And we're still using free routes, because they're easier to actually implement on the internet and deploy with a bunch of different volunteers everywhere. So we need to investigate the anonymity that we're actually getting, because he will admit that you might get good anonymity, maybe even better anonymity out of free routes, but it's not provable.
 
-Yes? Andreas Fitzman, ask me later, I'll spell it for you. Okay, synchronous versus asynchronous is another issue. Most of the arguments that Andreas has for why cascades are better than free routes is that all of the messages go through in synchrony. They all go through together.
+Yes? Andreas Pfitzman, ask me later, I'll spell it for you. Okay, synchronous versus asynchronous is another issue. Most of the arguments that Andreas has for why cascades are better than free routes is that all of the messages go through in synchrony. They all go through together.
 
 It could be that if we could set up a synchronous free route system, where you've got a bunch of different nodes and things can go all over the place, but they all sort of move forward in synchrony and all the hundred messages that came in come out at the same time. Maybe every 30 minutes there's a deadline by which you have to have put it one node forward in the path. Then maybe we can get at the same advantages of cascades without the disadvantages of them. Right now, we're using free routes, but if we find a cascade, why not put it at the beginning? That's potentially a good idea.
 
@@ -311,6 +343,8 @@ Another question is why not put a cascade at the beginning, because then the adv
 On the other hand, it makes your path much longer. And as we'll see in part two, maybe we don't really want a very long path, because then users don't have reliability or speed or things like that. Okay, so another issue here, should you run your own node? Do you get better anonymity by running a remailer than you get by just being a user? Certainly against the intersection attack, you're doing a lot better, because a lot of messages come in and a lot of messages come out, and maybe one more comes out and nobody will notice as much.
 
 So you can send more unobservably. And cover traffic helps here also, because you've got a bunch of other people sending through you, so you can receive messages to you without people realizing that it was anything other than a dummy. This of course presumes that you're able to run a node within your threat model. If you are running a node, and you're one of the human rights workers in some foreign country where anonymity is frowned upon, you're already in trouble just for running a node. So that's only a case where you have external circumstances that allow it.
+
+### The China Issue
 
 Yeah, the question that, Brandon was talking about the super worm and the China problem yesterday, and the China problem is a big problem for us also. How do you have a user in China using the remailer system, because he has to have our software to get his anonymity, and how does he get it, and how does he keep from getting thrown in jail when they find out that he has it, and so on. So that's yet another issue. Okay, so we've got sort of a teaser for the next talk, and also sort of a summary from this perspective. You can really look at anonymity from an economics perspective to get a sense of which parts ought to work, and things like that.
 
@@ -321,6 +355,8 @@ I'll just use this software here, and send it off to Bob, and it'll be great. Yo
 Somebody who says, I don't need an anonymity system because I don't do anything that's sensitive, are the people you want using the system. You want to make it so that using an anonymity system does not mean that you are doing any of these activities that may be frowned upon by wherever you're actually sitting. You want possible deniability, you want to be able to say, well, the person who was posting anonymous cheesecake recipes to use that, that was me, if ever you're put in that situation. So this leads into you really need to make the system inviting the people who don't particularly care about their anonymity so that they will use it. If their desire for anonymity is only some percentage of their overall experience concerns, you want to make sure you get that so you get them into the system, and not make them go through a lot of effort to use a system that doesn't give them as much return as they're actually giving to the system.
 
 Question? Yes, there are a number of research designs on that where, yeah, we'll get into that in part two because we don't have enough time. Come back after lunch. Yes. Yes.
+
+### Internal Messages versus External Messages
 
 Well, because that's, again, the problem of internal messages versus external messages. If there's lots of white noise within the network, but only a few messages actually being allowed to exit the network, and those are the legitimate messages, then that doesn't address the problem. For instance, if everyone using the network is a political dissident in China, it doesn't matter if they know what you're actually saying. The fact that you're sending something says that you're a person on their bad people's list. You need to make sure that everyone using it is doing different legitimate things with it that are all, you know, basically indistinguishable, so you can't nail down one person as being an anonymous sender of this particular bit of information, and we can't really solve that with dummy traffic because, again, dummy traffic is not any real message.
 
@@ -334,7 +370,9 @@ Any of the trade-offs that we need to make in order to make systems more appeali
 
 Look at this attack I can do. And the answer from the legitimate world, from the real world, from the people actually using it, is I don't really need to deal with that attack because if I implement the fix that you describe, I will have no more users, and my anonymity will be gone for that reason. All of this is about tradeoffs. Every decision we make usually involves some sort of tradeoff, and we need to keep in mind that usability is a very important security factor, and anything that decreases usability needs to be justified for that tradeoff. So for the economists out there, I've got an interesting result, or the P2P enthusiasts out there, I've got an interesting result.
 
-Anybody working on peer-to-peer systems like Nutella and so on, they say, they're these free riders. They keep using our system and they're not running nodes themselves or something, and they're not providing service themselves. They're free riding, they're bad. How do I get rid of the free riding problem? And in our case we say, we must have some free riding.
+### Free Rider Problem and Incentives
+
+Anybody working on peer-to-peer systems like Gnutella and so on, they say, they're these free riders. They keep using our system and they're not running nodes themselves or something, and they're not providing service themselves. They're free riding, they're bad. How do I get rid of the free riding problem? And in our case we say, we must have some free riding.
 
 We must have some users who don't really care and don't want to provide anything to the system using the nodes of people who do. So this is sort of a unique case in the peer-to-peer world where we require free riding or we don't get our anonymity. And we don't want too much, obviously, because then you won't have enough nodes to handle the traffic. But you need some optimal amount where you've got the last point. Yeah, with the free riding issue, it comes back to, we were talking about the synchronous and asynchronous batching and delivery.
 
