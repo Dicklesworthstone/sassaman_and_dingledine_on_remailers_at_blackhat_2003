@@ -3,6 +3,8 @@
 ## By Len Sassaman and Roger Dingledine
 ## *Presented at the Blackhat Conference in 2003*
 
+> **Editor's Note**: This is a transcript of a really great talk given in 2003. You can watch the full video of it [here](https://www.youtube.com/watch?v=Y7A2J6YnLfA). I thought it was a shame that the video had under 100 views and also has pretty poor sound quality, so I decided to create a transcript using a [custom script](https://github.com/Dicklesworthstone/bulk_transcribe_youtube_videos_from_playlist) which I then manually edited for accuracy (as well as added section headers to for convenience). You can also see the original slides from the talk [here](https://github.com/Dicklesworthstone/sassaman_and_dingledine_on_remailers_at_blackhat_2003/blob/main/bh-us-03-sassaman-conference-slides.pdf). Note that I disclaim all rights to any of this content. I just want to bring it to the attention of more people in a convenient form, and I'm confident that the late Len Sassaman would be OK with that (RIP Len). If you see any errors in the transcript, please submit a PR to fix them.  — *Jeff Emanuel*
+
 ### Introduction
 
 We're focusing for both the talks on high latency systems like Mixmaster, things for email, remailers. There are some low latency systems for web browsing or something, but we're going to not focus on those quite as much. Okay, so for this one, before lunch, we've got some stuff about adversaries and threat models. We're going to give you a walkthrough of the Mixminion design process. I'll tell you what that is in a bit.
