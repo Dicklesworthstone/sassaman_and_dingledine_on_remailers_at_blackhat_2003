@@ -41,7 +41,7 @@ The Mixminion Threat Model is all three. We want to handle a global passive adve
 
 We're not real-time, we're not packet-based, we're not steganographic, those are all the first questions people ask. We're not trying to do this for web browsing or something, it's just for email at this point. We won't actually succeed against an adversary that's this hard, but we'll come kind of close and you'll see which attacks still work towards the end. I mean, this is a pretty hard adversary. Most designs aim for something weaker than this because, I mean, this is large, smart governments. 
 
-## Remailer Goals and Design
+### Remailer Goals and Design
 
 Okay, so basic idea: Alice wants to send a message to Bob and she wants Bob to not know where it came from. So the first thing you can do is set up a direct forwarder. Basically node number one gets the message from Alice. It says, "Hey, give this to Bob," and node number one gives it to Bob. So in the simple naive case, if Bob can only look around him, he doesn't know that it came from Alice because number one strips it off.
 
@@ -89,7 +89,7 @@ So we'll fix that in a bit. Okay. So we can combine these two ideas. Bob can cho
 
 So now somebody watching the Nymserver sees a message come in out of the ether and a message go off to some reply block. And they can perhaps correlate that it's the pseudonym that it's going to. But they have no idea who the sender was. And they don't know the location of the recipient. And if you stop here, you get Type I or Cypherpunk remailers, which were done in, what, '92? '92, originally. '91, '92. Something like that. Okay.
 
-## Monitoring and Attacks
+### Monitoring and Attacks
 
 Well, there's one problem here, which is as a message travels through each node, if you're able to watch the network, you can just watch a message go in, go out, go in, go out. And you don't need to know what is actually in that message because even though you can't see the message and can't tell the two messages are the same, you know basically that they're the same message because you've just watched it hop back and forth through the network. So what we want to do is make it so somebody watching the network, the global adversary, can't determine that a certain input is the same as a certain output. So we end up bringing messages in and reordering them so that they go out in a different order than they came in. Combine that with multiple nodes and you have a pretty difficult time tracking which message is which based on order if you have enough people in the, users in the network. There's still a problem with the Cypherpunk system, which is each message is just PGP encrypted in the Type I system and each message then is its own size.
 
